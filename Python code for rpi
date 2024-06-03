@@ -1,0 +1,27 @@
+import serial
+import time
+import tkinter as tk
+
+# Set up serial connection to Arduino
+ser = serial.Serial('/dev/ttyACM0', 115200)  # Adjust the port as necessary
+time.sleep(2)  # Wait for the connection to initialize
+
+def turn_on():
+    ser.write(b'1')
+
+def turn_off():
+    ser.write(b'0')
+
+# Set up the GUI using Tkinter
+root = tk.Tk()
+root.title("Light Control")
+
+# Create buttons and place them in the GUI
+button_on = tk.Button(root, text="Turn On", command=turn_on)
+button_on.pack(pady=10)
+
+button_off = tk.Button(root, text="Turn Off", command=turn_off)
+button_off.pack(pady=10)
+
+# Start the Tkinter main loop
+root.mainloop()
