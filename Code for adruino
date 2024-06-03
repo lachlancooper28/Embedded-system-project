@@ -1,0 +1,73 @@
+#include <Adafruit_NeoPixel_ZeroDMA.h>
+#include <TCS3200.h>
+
+// Pin definitions
+#define PIN         6    // Pin for NeoPixel strip
+#define NUM_PIXELS  120  // Number of NeoPixels
+#define S0_PIN      2
+#define S1_PIN      3
+#define S2_PIN      4
+#define S3_PIN      5
+#define OUT_PIN     7    // TCS3200 Output pin
+
+// Create an instance of the TCS3200 class
+TCS3200 tcs3200(S0_PIN, S1_PIN, S2_PIN, S3_PIN, OUT_PIN);
+Adafruit_NeoPixel_ZeroDMA strip(NUM_PIXELS, PIN, NEO_GRB);
+
+void setup() {
+  strip.begin();
+  strip.setBrightness(32);
+  strip.show();
+
+  Serial.begin(115200);
+  Serial.println("[TCS3200 NeoPixel Example]");
+  Serial.println("Move the sensor to different colors to see the RGB value");
+  Serial.println("Note: These values are being read in with sensor calibration");
+
+  // Initialize the TCS3200 sensor
+  tcs3200.begin();
+  tcs3200.frequency_scaling(TCS3200_OFREQ_20P);
+
+  // Calibrate the sensor for accurate color readings
+  Serial.println("Calibrating...");
+  Serial.println("Please face the sensor to a white surface.");
+  delay(1000);
+  tcs3200.calibrate_light();
+  
+  Serial.println("Please face the sensor to a dark surface.");
+  delay(1000);
+  tcs3200.calibrate_dark();
+  
+  Serial.println("Done calibrating!");
+  tcs3200.calibrate();
+  delay(1000);
+}
+
+void readSensorAndUpdateStrip() {
+  // Read RGB color values
+  RGBColor rgb_color = tcs3200.read_rgb_color();
+
+  // Log the RGB values to the serial monitor
+  Serial.print("RGB [");
+  Serial.print(rgb_color.red);
+  Serial.print(",");
+  Serial.print(rgb_color.green);
+  Serial.print(",");
+  Serial.print(rgb_color.blue);
+  Serial.println("]");
+
+  // Convert RGB values to a single 32-bit color value
+  uint32_t color = strip.Color(rgb_color.red, rgb_color.green, rgb_color.blue);
+
+  // Set the entire strip to the detected color
+  for (uint16_t i = 0; i < strip.numPixels(); i++) {
+    strip.setPixelColor(i, color);
+  }
+  strip.show();
+}
+
+void loop() {
+  // Continuously read sensor and update the LED strip color
+  readSensorAndUpdateStrip();
+  delay(100);  // Add a small delay to avoid overwhelming the sensor and serial output
+}
